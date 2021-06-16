@@ -1,6 +1,6 @@
 " Use the Solarized Dark theme
 set background=dark
-colorscheme molokai
+colorscheme gruvbox
 
 " Make Vim more useful
 set nocompatible
@@ -9,7 +9,7 @@ set clipboard=unnamed
 " Enhance command-line completion
 set wildmenu
 " Allow cursor keys in insert mode
-set esckeys
+"set esckeys
 " Allow backspace in insert mode
 set backspace=indent,eol,start
 " Optimize for fast terminal connections
@@ -126,8 +126,11 @@ call plug#begin('~/.vim/plugged')
 Plug 'Quramy/tsuquyomi'
 "Plug 'HerringtonDarkholme/yats.vim'
 "Plug 'mhartington/nvim-typescript', {'do': './install.sh'}
+Plug 'leafgarland/typescript-vim'
 " For async completion
 Plug 'Shougo/deoplete.nvim'
+Plug 'Shougo/vimproc.vim', {'do' : 'make'}
+Plug 'Shougo/echodoc.vim',
 " For Denite features
 Plug 'Shougo/denite.nvim'
 Plug 'roxma/nvim-yarp'
@@ -138,18 +141,23 @@ Plug '/usr/local/opt/fzf'
 Plug 'junegunn/fzf.vim'
 
 Plug 'flazz/vim-colorschemes'
-
+Plug 'morhetz/gruvbox'
 Plug 'christoomey/vim-tmux-navigator'
 
 Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
+Plug 'Yggdroot/indentLine'
 
+Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
+Plug 'jiangmiao/auto-pairs'
 "Plug 'prettier/vim-prettier', {
 "  \ 'do': 'npm install',
 "  \ 'for': ['javascript', 'typescript', 'css', 'less', 'scss', 'json', 'graphql', 'markdown', 'vue', 'yaml', 'html'] }
 " Initialize plugin system
 call plug#end()
 let g:deoplete#enable_at_startup = 1
+let g:echodoc_enable_at_startup = 1
+let g:echodoc#type = 'virtual'
 "let g:nvim_typescript#default_mappings = 1
 inoremap <silent><expr> <TAB>
     \ pumvisible() ? "\<C-n>" :
@@ -186,7 +194,7 @@ if executable('ag')
 endif
 
 let g:tmux_navigator_save_on_switch = 2
-
+noremap <leader>a  :Ag <C-r>=expand('<cword>')<CR><CR>
 packloadall
 " Load all of the helptags now, after plugins have been loaded.
 " All messages and errors will be ignored.
