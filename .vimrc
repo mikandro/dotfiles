@@ -150,6 +150,11 @@ Plug 'Yggdroot/indentLine'
 
 Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
 Plug 'jiangmiao/auto-pairs'
+Plug 'preservim/nerdtree'
+Plug 'Xuyuanp/nerdtree-git-plugin'
+
+Plug 'dense-analysis/ale'
+
 "Plug 'prettier/vim-prettier', {
 "  \ 'do': 'npm install',
 "  \ 'for': ['javascript', 'typescript', 'css', 'less', 'scss', 'json', 'graphql', 'markdown', 'vue', 'yaml', 'html'] }
