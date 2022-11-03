@@ -1,0 +1,5 @@
+let g:netrw_dirhistmax  =10
+let g:netrw_dirhistcnt =3
+let g:netrw_dirhist_3='/Users/mihail.andritchi@fintecture.com/code/api-gateway/controllers/ext'
+let g:netrw_dirhist_2='/Users/mihail.andritchi@fintecture.com/code/api-gateway/controllers/ext/v1'
+let g:netrw_dirhist_1='/Users/mihail.andritchi@fintecture.com/code/api-gateway/controllers/ext'
