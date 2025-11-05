@@ -1,0 +1,249 @@
+# Git configuration file
+# Place this file at ~/.gitconfig or ~/dotfiles/.gitconfig and symlink it
+
+[user]
+	# Set your name and email
+	name = Your Name
+	email = your.email@example.com
+	# Uncomment if you use GPG signing
+	# signingkey = YOUR_GPG_KEY
+
+[core]
+	editor = nvim
+	# Use global gitignore
+	excludesfile = ~/.gitignore_global
+	# Better whitespace handling
+	whitespace = fix,-indent-with-non-tab,trailing-space,cr-at-eol
+	# Use less as pager with color
+	pager = less -FRX
+	# Auto CRLF conversion
+	autocrlf = input
+
+[init]
+	# Default branch name
+	defaultBranch = main
+
+[pull]
+	# Only fast-forward on pull
+	ff = only
+	rebase = false
+
+[push]
+	# Push current branch only
+	default = current
+	# Push tags automatically
+	followTags = true
+	# Automatically set up remote tracking
+	autoSetupRemote = true
+
+[fetch]
+	# Prune deleted remote branches
+	prune = true
+
+[merge]
+	# Use vimdiff as merge tool
+	tool = vimdiff
+	# Show common ancestor in conflict
+	conflictstyle = diff3
+
+[diff]
+	# Better diff algorithm
+	algorithm = histogram
+	# Show renames
+	renames = copies
+	# Use nvim as diff tool
+	tool = nvimdiff
+
+[difftool]
+	prompt = false
+
+[color]
+	ui = auto
+	branch = auto
+	diff = auto
+	status = auto
+
+[color "branch"]
+	current = yellow reverse
+	local = yellow
+	remote = green
+
+[color "diff"]
+	meta = yellow bold
+	frag = magenta bold
+	old = red bold
+	new = green bold
+
+[color "status"]
+	added = green
+	changed = yellow
+	untracked = red
+
+# ---------- Aliases ----------
+
+[alias]
+	# Status
+	s = status -sb
+	st = status
+
+	# Add
+	a = add
+	aa = add --all
+	ap = add --patch
+
+	# Commit
+	c = commit
+	cm = commit -m
+	ca = commit --amend
+	can = commit --amend --no-edit
+
+	# Branch
+	b = branch
+	ba = branch -a
+	bd = branch -d
+	bD = branch -D
+
+	# Checkout
+	co = checkout
+	cob = checkout -b
+	com = checkout main
+	cod = checkout develop
+
+	# Merge
+	m = merge
+	mnf = merge --no-ff
+
+	# Push/Pull
+	p = push
+	pf = push --force-with-lease
+	pl = pull
+	plo = pull origin
+	poh = push origin HEAD
+	pu = push -u origin HEAD
+
+	# Fetch
+	f = fetch
+	fa = fetch --all
+	fo = fetch origin
+
+	# Remote
+	r = remote -v
+	ra = remote add
+	rr = remote remove
+	ru = remote update
+
+	# Log
+	l = log --pretty=format:'%C(yellow)%h%C(reset) - %C(cyan)%an%C(reset) %C(green)(%cr)%C(reset) %s' --abbrev-commit
+	lg = log --graph --pretty=format:'%C(yellow)%h%C(reset) - %C(cyan)%an%C(reset) %C(green)(%cr)%C(reset) %s' --abbrev-commit
+	ll = log --oneline --decorate --graph
+	lga = log --graph --pretty=format:'%C(yellow)%h%C(reset) - %C(cyan)%an%C(reset) %C(green)(%cr)%C(reset) %s' --abbrev-commit --all
+	ls = log --stat
+	lp = log --patch
+
+	# Diff
+	d = diff
+	ds = diff --staged
+	dc = diff --cached
+	dw = diff --word-diff
+
+	# Reset
+	unstage = reset HEAD --
+	undo = reset --soft HEAD^
+	rs = reset --soft
+	rh = reset --hard
+
+	# Stash
+	ss = stash save
+	sl = stash list
+	sp = stash pop
+	sa = stash apply
+	sd = stash drop
+	sc = stash clear
+
+	# Rebase
+	rb = rebase
+	rbi = rebase -i
+	rbc = rebase --continue
+	rba = rebase --abort
+
+	# Cherry-pick
+	cp = cherry-pick
+	cpa = cherry-pick --abort
+	cpc = cherry-pick --continue
+
+	# Show
+	sh = show
+	shs = show --stat
+
+	# Tag
+	t = tag
+	ta = tag -a
+	td = tag -d
+
+	# Clean
+	cl = clean -fd
+
+	# Shortcuts
+	who = shortlog -sn --
+	contributors = shortlog --summary --numbered
+	aliases = config --get-regexp alias
+
+	# Find commits by message
+	find = log --all --oneline --graph --decorate --grep
+
+	# Find commits by code change
+	fc = "!f() { git log --pretty=format:'%C(yellow)%h%Creset -%C(red)%d%Creset %s %C(green)(%cr) %C(cyan)<%an>%Creset' --decorate --date=short -S$1; }; f"
+
+	# List branches by last commit date
+	recent = for-each-ref --sort=-committerdate --format='%(committerdate:short) %(refname:short)' refs/heads/
+
+	# Show last commit
+	last = log -1 HEAD --stat
+
+	# Show current branch
+	current = rev-parse --abbrev-ref HEAD
+
+	# Undo last commit but keep changes
+	uncommit = reset --soft HEAD^
+
+	# Show ignored files
+	ignored = ls-files --others --ignored --exclude-standard
+
+	# Count commits
+	count = rev-list --count HEAD
+
+	# Create new branch from main and switch to it
+	nb = "!f() { git checkout main && git pull && git checkout -b $1; }; f"
+
+	# Delete merged branches (except main, master, develop)
+	cleanup = "!git branch --merged | grep -v '\\*\\|main\\|master\\|develop' | xargs -n 1 git branch -d"
+
+	# Interactive rebase for last n commits
+	reb = "!r() { git rebase -i HEAD~$1; }; r"
+
+	# Sync with remote (fetch, prune, and pull)
+	sync = "!git fetch --all --prune && git pull"
+
+	# Show files in last commit
+	files = diff-tree --no-commit-id --name-only -r HEAD
+
+	# Commit with conventional commit format
+	feat = "!f() { git commit -m \"feat: $*\"; }; f"
+	fix = "!f() { git commit -m \"fix: $*\"; }; f"
+	docs = "!f() { git commit -m \"docs: $*\"; }; f"
+	style = "!f() { git commit -m \"style: $*\"; }; f"
+	refactor = "!f() { git commit -m \"refactor: $*\"; }; f"
+	test = "!f() { git commit -m \"test: $*\"; }; f"
+	chore = "!f() { git commit -m \"chore: $*\"; }; f"
+
+[help]
+	# Autocorrect typos
+	autocorrect = 1
+
+[rerere]
+	# Remember how you resolved merge conflicts
+	enabled = true
+
+[credential]
+	# Cache credentials for 1 hour
+	helper = cache --timeout=3600

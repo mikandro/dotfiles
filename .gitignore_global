@@ -1,0 +1,180 @@
+# Global gitignore file
+# Place at ~/.gitignore_global and reference in ~/.gitconfig
+
+# ---------- OS ----------
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msm
+*.msp
+*.lnk
+
+# Linux
+*~
+.directory
+.Trash-*
+
+# ---------- Editors ----------
+
+# Vim
+*.swp
+*.swo
+*~
+.*.sw[a-z]
+*.un~
+Session.vim
+.netrwhist
+
+# VSCode
+.vscode/
+*.code-workspace
+.history/
+
+# JetBrains IDEs
+.idea/
+*.iml
+*.ipr
+*.iws
+.idea_modules/
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# ---------- Node.js ----------
+
+# Dependencies
+node_modules/
+jspm_packages/
+bower_components/
+
+# Build outputs
+dist/
+build/
+out/
+.next/
+.nuxt/
+.cache/
+.parcel-cache/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+pnpm-debug.log*
+
+# Testing
+coverage/
+.nyc_output/
+.jest-cache/
+
+# Environment
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env*.local
+
+# Package manager
+.npm
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+.pnp.*
+
+# ---------- Python ----------
+
+# Byte-compiled
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Distribution
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv
+
+# ---------- Miscellaneous ----------
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.bak
+*.backup
+
+# Archives
+*.zip
+*.tar.gz
+*.rar
+
+# Security
+*.key
+*.pem
+*.p12
+*.pfx
+credentials.json
+secrets.json
+
+# Database
+*.sqlite
+*.db
+
+# System files
+.Thumbs.db
+.Trashes

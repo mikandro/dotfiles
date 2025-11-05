@@ -1,0 +1,34 @@
+# Dotfiles repository .gitignore
+
+# Local machine-specific configs
+*.local
+.zshrc.local
+.bashrc.local
+
+# Neovim
+.config/nvim/lazy-lock.json
+.config/nvim/.luarc.json
+
+# Vim swap files
+.vim/swaps/*.swp
+.vim/backups/*
+.vim/undo/*
+
+# Keep directory structure but ignore contents
+!.vim/swaps/.gitkeep
+!.vim/backups/.gitkeep
+!.vim/undo/.gitkeep
+
+# macOS
+.DS_Store
+
+# Temporary files
+*.tmp
+*.bak
+*~
+
+# Archive (keep in git for reference)
+# archive/
+
+# Machine-specific symlinks
+.config/iterm2/AppSupport
