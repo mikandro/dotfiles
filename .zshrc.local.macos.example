@@ -1,0 +1,43 @@
+# ~/.zshrc.local for macOS
+# This file is sourced by .zshrc and is machine-specific
+# Copy this to ~/.zshrc.local and customize for your macOS setup
+
+# ---------- macOS-Specific Paths ----------
+
+# Homebrew paths (if using custom installation)
+# export PATH="/opt/homebrew/bin:$PATH"  # Apple Silicon
+# export PATH="/usr/local/bin:$PATH"     # Intel
+
+# macOS-specific tools
+# export PATH="/usr/local/opt/gnu-sed/libexec/gnubin:$PATH"  # GNU sed
+# export PATH="/usr/local/opt/coreutils/libexec/gnubin:$PATH"  # GNU coreutils
+
+# ---------- macOS Applications ----------
+
+# iTerm2 shell integration (if installed)
+# test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell_integration.zsh"
+
+# ---------- macOS-Specific Aliases ----------
+
+# Finder
+alias showfiles='defaults write com.apple.finder AppleShowAllFiles YES; killall Finder'
+alias hidefiles='defaults write com.apple.finder AppleShowAllFiles NO; killall Finder'
+
+# Quick Look
+alias ql='qlmanage -p'
+
+# System
+alias flushdns='sudo dscacheutil -flushcache; sudo killall -HUP mDNSResponder'
+alias cleanup='find . -type f -name "*.DS_Store" -ls -delete'
+
+# ---------- macOS-Specific Functions ----------
+
+# Open man page in Preview
+manpdf() {
+    man -t "$1" | open -f -a Preview
+}
+
+# Change directory and list (using macOS ls)
+cdl() {
+    cd "$1" && ls -G
+}

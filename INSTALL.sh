@@ -16,6 +16,13 @@ NC='\033[0m' # No Color
 DOTFILES_DIR="$HOME/dotfiles"
 BACKUP_DIR="$HOME/dotfiles_backup_$(date +%Y%m%d_%H%M%S)"
 
+# Detect OS
+case "$(uname -s)" in
+    Darwin*)    OS_TYPE="macos" ;;
+    Linux*)     OS_TYPE="linux" ;;
+    *)          OS_TYPE="unknown" ;;
+esac
+
 # Function to print colored output
 print_info() {
     echo -e "${BLUE}[INFO]${NC} $1"
@@ -64,6 +71,13 @@ echo ""
 echo "======================================"
 echo "  Dotfiles Installation Script"
 echo "======================================"
+echo ""
+
+# Display detected OS
+print_info "Detected OS: $OS_TYPE"
+if [ "$OS_TYPE" == "unknown" ]; then
+    print_warning "Unknown OS detected. Some features may not work correctly."
+fi
 echo ""
 
 # Check if we're in the dotfiles directory
@@ -210,6 +224,31 @@ if [ "$install_shell" = true ]; then
                 print_warning "Skipping shell configuration"
                 ;;
         esac
+    fi
+
+    # Offer to copy OS-specific local config template
+    echo ""
+    print_info "OS-specific configuration template available"
+    if [ "$OS_TYPE" == "macos" ]; then
+        template="$DOTFILES_DIR/.zshrc.local.macos.example"
+    elif [ "$OS_TYPE" == "linux" ]; then
+        template="$DOTFILES_DIR/.zshrc.local.linux.example"
+    else
+        template=""
+    fi
+
+    if [ -n "$template" ] && [ -f "$template" ]; then
+        if [ ! -f "$HOME/.zshrc.local" ]; then
+            read -p "Copy OS-specific template to ~/.zshrc.local? (y/n) " -n 1 -r
+            echo
+            if [[ $REPLY =~ ^[Yy]$ ]]; then
+                cp "$template" "$HOME/.zshrc.local"
+                print_success "Created ~/.zshrc.local from template"
+                print_info "Edit ~/.zshrc.local to customize for your machine"
+            fi
+        else
+            print_info "~/.zshrc.local already exists, skipping template"
+        fi
     fi
 fi
 

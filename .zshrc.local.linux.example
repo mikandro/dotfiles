@@ -1,0 +1,59 @@
+# ~/.zshrc.local for Linux (Debian/Ubuntu)
+# This file is sourced by .zshrc and is machine-specific
+# Copy this to ~/.zshrc.local and customize for your Linux setup
+
+# ---------- Linux-Specific Paths ----------
+
+# Local binaries
+# export PATH="$HOME/.local/bin:$PATH"
+
+# System-specific tool paths
+# export PATH="/snap/bin:$PATH"  # Snap packages
+
+# ---------- Linux-Specific Aliases ----------
+
+# Package management helpers
+alias install='sudo apt install'
+alias remove='sudo apt remove'
+alias search='apt search'
+alias autoremove='sudo apt autoremove'
+
+# System info
+alias sysinfo='inxi -Fxz'  # If inxi is installed
+alias diskusage='df -h'
+alias meminfo='free -h'
+
+# Clipboard (requires xclip)
+alias pbcopy='xclip -selection clipboard'
+alias pbpaste='xclip -selection clipboard -o'
+
+# Service management
+alias svstart='sudo systemctl start'
+alias svstop='sudo systemctl stop'
+alias svrestart='sudo systemctl restart'
+alias svstatus='sudo systemctl status'
+
+# ---------- Linux Desktop Environment ----------
+
+# GNOME-specific (uncomment if using GNOME)
+# alias open='xdg-open'
+# alias settings='gnome-control-center'
+
+# KDE-specific (uncomment if using KDE)
+# alias open='kde-open5'
+# alias settings='systemsettings5'
+
+# Generic
+alias open='xdg-open'
+
+# ---------- Linux-Specific Functions ----------
+
+# Find large files
+findlarge() {
+    find . -type f -size +${1:-100}M -exec ls -lh {} \; | awk '{ print $9 ": " $5 }'
+}
+
+# Monitor system resources
+sysmon() {
+    htop || top
+}

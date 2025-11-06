@@ -44,6 +44,13 @@ zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}'
 export EDITOR='nvim'
 export VISUAL='nvim'
 
+# ---------- OS Detection ----------
+case "$(uname -s)" in
+    Darwin*)    OS_TYPE="macos" ;;
+    Linux*)     OS_TYPE="linux" ;;
+    *)          OS_TYPE="unknown" ;;
+esac
+
 # ---------- Aliases ----------
 
 # Navigation
@@ -53,8 +60,12 @@ alias ....='cd ../../..'
 alias ~='cd ~'
 alias -- -='cd -'
 
-# List files
-alias ls='ls --color=auto'
+# List files (OS-specific)
+if [[ "$OS_TYPE" == "macos" ]]; then
+    alias ls='ls -G'  # macOS uses -G for color
+else
+    alias ls='ls --color=auto'  # GNU ls uses --color
+fi
 alias ll='ls -lah'
 alias la='ls -A'
 alias l='ls -CF'
@@ -209,8 +220,19 @@ alias v='nvim'
 alias vi='nvim'
 alias vim='nvim'
 
-# System
-alias update='sudo apt update && sudo apt upgrade -y'  # For Debian/Ubuntu
+# System (OS-specific)
+if [[ "$OS_TYPE" == "macos" ]]; then
+    alias update='brew update && brew upgrade'
+elif [[ "$OS_TYPE" == "linux" ]]; then
+    # Detect Linux distro
+    if command -v apt &> /dev/null; then
+        alias update='sudo apt update && sudo apt upgrade -y'
+    elif command -v dnf &> /dev/null; then
+        alias update='sudo dnf upgrade -y'
+    elif command -v pacman &> /dev/null; then
+        alias update='sudo pacman -Syu'
+    fi
+fi
 alias c='clear'
 alias h='history'
 alias j='jobs -l'

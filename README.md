@@ -417,6 +417,107 @@ git config --global user.name "Your Name"
 git config --global user.email "your.email@example.com"
 ```
 
+## Cross-Platform Support (macOS & Linux)
+
+The dotfiles are designed to work seamlessly on both macOS and Linux (Debian/Ubuntu). OS-specific differences are handled automatically.
+
+### Automatic OS Detection
+
+The shell configs automatically detect your OS and adapt:
+
+**macOS:**
+- Uses `ls -G` for colored output (BSD ls)
+- `update` alias runs `brew update && brew upgrade`
+- Tmux clipboard uses `pbcopy/pbpaste`
+
+**Linux (Debian/Ubuntu):**
+- Uses `ls --color=auto` for colored output (GNU ls)
+- `update` alias runs `sudo apt update && sudo apt upgrade -y`
+- Tmux clipboard uses `xclip`
+
+**Other Linux distros:**
+- Fedora/RHEL: `update` uses `dnf`
+- Arch: `update` uses `pacman`
+
+### OS-Specific Local Configurations
+
+For machine-specific customizations, use local config files:
+
+**macOS:**
+```bash
+# Copy the macOS template
+cp ~/dotfiles/.zshrc.local.macos.example ~/.zshrc.local
+# Edit for your needs
+nvim ~/.zshrc.local
+```
+
+Includes macOS-specific aliases and functions for:
+- Finder (show/hide hidden files)
+- Quick Look (`ql` command)
+- DNS flushing
+- iTerm2 integration
+- Homebrew path setup
+
+**Linux:**
+```bash
+# Copy the Linux template
+cp ~/dotfiles/.zshrc.local.linux.example ~/.zshrc.local
+# Edit for your needs
+nvim ~/.zshrc.local
+```
+
+Includes Linux-specific aliases and functions for:
+- Package management helpers
+- System info commands
+- Service management (systemctl)
+- Desktop environment helpers
+- Clipboard aliases (pbcopy/pbpaste equivalents)
+
+### Known Platform Differences
+
+| Feature | macOS | Linux |
+|---------|-------|-------|
+| **ls colors** | `-G` flag | `--color=auto` flag |
+| **Clipboard** | pbcopy/pbpaste | xclip/xsel |
+| **Package manager** | Homebrew | apt/dnf/pacman |
+| **Tmux install** | `brew install tmux` | `apt install tmux` |
+| **Python** | Usually `python3` | Usually `python3` |
+| **Open command** | `open` (built-in) | `xdg-open` |
+
+### Installation Script
+
+The `INSTALL.sh` script detects your OS automatically:
+- Displays detected OS at startup
+- Offers OS-specific local config template
+- Provides OS-appropriate installation instructions
+- Handles OS-specific tool paths
+
+### Tips for Multi-Machine Setup
+
+If using these dotfiles on both macOS and Linux:
+
+1. **Use .zshrc.local for OS-specific settings**
+   - Keep dotfiles repo clean and cross-platform
+   - Machine-specific configs in local files
+
+2. **Install matching tools on both systems**
+   - Same Neovim version (>= 0.9.0)
+   - Same tmux version (>= 3.0)
+   - Language runtimes as needed
+
+3. **Tool locations might differ**
+   - Use `command -v` to check: `command -v nvim`
+   - PATH is set up to work on both systems
+
+4. **Git configs are portable**
+   - Username/email set per-machine
+   - Everything else works everywhere
+
+5. **Sync via Git**
+   - Commit and push dotfiles from one machine
+   - Pull on the other to sync changes
+   - Local configs stay machine-specific
+
 ## Troubleshooting
 
 ### Neovim Issues
