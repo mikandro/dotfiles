@@ -13,7 +13,20 @@ return {
     },
     opts = {
       defaults = {
-        file_ignore_patterns = { "node_modules", ".git", "dist", "build" },
+        file_ignore_patterns = {
+          "node_modules",
+          ".git",
+          "dist",
+          "build",
+          "vendor",        -- Go vendor directory
+          "__pycache__",   -- Python cache
+          "%.pyc",         -- Python bytecode
+          ".venv",         -- Python venv
+          "venv",          -- Python venv
+          ".pytest_cache", -- Python pytest
+          ".mypy_cache",   -- Python mypy
+          ".ruff_cache",   -- Python ruff
+        },
         vimgrep_arguments = {
           "rg",
           "--color=never",

@@ -22,6 +22,10 @@ require("lazy").setup({
     { import = "lazyvim.plugins.extras.lang.json" },
     { import = "lazyvim.plugins.extras.linting.eslint" },
     { import = "lazyvim.plugins.extras.formatting.prettier" },
+    -- Import extra modules for Go
+    { import = "lazyvim.plugins.extras.lang.go" },
+    -- Import extra modules for Python
+    { import = "lazyvim.plugins.extras.lang.python" },
     { import = "lazyvim.plugins.extras.editor.mini-files" },
     { import = "lazyvim.plugins.extras.ui.mini-animate" },
     -- Import your custom plugins

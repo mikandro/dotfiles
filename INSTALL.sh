@@ -16,6 +16,13 @@ NC='\033[0m' # No Color
 DOTFILES_DIR="$HOME/dotfiles"
 BACKUP_DIR="$HOME/dotfiles_backup_$(date +%Y%m%d_%H%M%S)"
 
+# Detect OS
+case "$(uname -s)" in
+    Darwin*)    OS_TYPE="macos" ;;
+    Linux*)     OS_TYPE="linux" ;;
+    *)          OS_TYPE="unknown" ;;
+esac
+
 # Function to print colored output
 print_info() {
     echo -e "${BLUE}[INFO]${NC} $1"
@@ -66,6 +73,13 @@ echo "  Dotfiles Installation Script"
 echo "======================================"
 echo ""
 
+# Display detected OS
+print_info "Detected OS: $OS_TYPE"
+if [ "$OS_TYPE" == "unknown" ]; then
+    print_warning "Unknown OS detected. Some features may not work correctly."
+fi
+echo ""
+
 # Check if we're in the dotfiles directory
 if [ ! -f "$DOTFILES_DIR/INSTALL.sh" ]; then
     print_error "Please run this script from the dotfiles directory"
@@ -76,7 +90,7 @@ fi
 print_info "Checking for required commands..."
 MISSING_COMMANDS=()
 
-for cmd in git nvim node npm; do
+for cmd in git nvim; do
     if ! command -v $cmd &> /dev/null; then
         MISSING_COMMANDS+=("$cmd")
     fi
@@ -92,6 +106,39 @@ if [ ${#MISSING_COMMANDS[@]} -ne 0 ]; then
     fi
 fi
 
+# Check for optional language tools
+print_info "Checking for language tooling..."
+HAS_NODE=false
+HAS_GO=false
+HAS_PYTHON=false
+
+if command -v node &> /dev/null && command -v npm &> /dev/null; then
+    HAS_NODE=true
+    print_success "Node.js found: $(node --version)"
+fi
+
+if command -v go &> /dev/null; then
+    HAS_GO=true
+    print_success "Go found: $(go version | awk '{print $3}')"
+fi
+
+if command -v python3 &> /dev/null && command -v pip3 &> /dev/null; then
+    HAS_PYTHON=true
+    print_success "Python found: $(python3 --version)"
+fi
+
+if [ "$HAS_NODE" = false ] && [ "$HAS_GO" = false ] && [ "$HAS_PYTHON" = false ]; then
+    print_warning "No language tooling found (Node.js, Go, or Python)"
+    print_info "Language servers won't be installed"
+fi
+
+# Check for tmux
+HAS_TMUX=false
+if command -v tmux &> /dev/null; then
+    HAS_TMUX=true
+    print_success "Tmux found: $(tmux -V)"
+fi
+
 # Ask user what to install
 echo ""
 print_info "What would you like to install?"
@@ -99,17 +146,20 @@ echo "1) Everything (recommended)"
 echo "2) Neovim only"
 echo "3) Shell configs only"
 echo "4) Git configs only"
-read -p "Enter your choice (1-4): " choice
+echo "5) Tmux config only"
+read -p "Enter your choice (1-5): " choice
 
 install_nvim=false
 install_shell=false
 install_git=false
+install_tmux=false
 
 case $choice in
     1)
         install_nvim=true
         install_shell=true
         install_git=true
+        install_tmux=true
         ;;
     2)
         install_nvim=true
@@ -119,6 +169,9 @@ case $choice in
         ;;
     4)
         install_git=true
+        ;;
+    5)
+        install_tmux=true
         ;;
     *)
         print_error "Invalid choice"
@@ -172,6 +225,31 @@ if [ "$install_shell" = true ]; then
                 ;;
         esac
     fi
+
+    # Offer to copy OS-specific local config template
+    echo ""
+    print_info "OS-specific configuration template available"
+    if [ "$OS_TYPE" == "macos" ]; then
+        template="$DOTFILES_DIR/.zshrc.local.macos.example"
+    elif [ "$OS_TYPE" == "linux" ]; then
+        template="$DOTFILES_DIR/.zshrc.local.linux.example"
+    else
+        template=""
+    fi
+
+    if [ -n "$template" ] && [ -f "$template" ]; then
+        if [ ! -f "$HOME/.zshrc.local" ]; then
+            read -p "Copy OS-specific template to ~/.zshrc.local? (y/n) " -n 1 -r
+            echo
+            if [[ $REPLY =~ ^[Yy]$ ]]; then
+                cp "$template" "$HOME/.zshrc.local"
+                print_success "Created ~/.zshrc.local from template"
+                print_info "Edit ~/.zshrc.local to customize for your machine"
+            fi
+        else
+            print_info "~/.zshrc.local already exists, skipping template"
+        fi
+    fi
 fi
 
 # Install Git config
@@ -185,6 +263,41 @@ if [ "$install_git" = true ]; then
     print_warning "Don't forget to set your Git user info:"
     echo "  git config --global user.name \"Your Name\""
     echo "  git config --global user.email \"your.email@example.com\""
+fi
+
+# Install Tmux config
+if [ "$install_tmux" = true ]; then
+    echo ""
+    print_info "Installing Tmux configuration..."
+
+    if [ "$HAS_TMUX" = false ]; then
+        print_warning "Tmux not found. Configuration will be installed but tmux needs to be installed separately."
+        read -p "Continue? (y/n) " -n 1 -r
+        echo
+        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+            print_info "Skipping tmux configuration"
+            install_tmux=false
+        fi
+    fi
+
+    if [ "$install_tmux" = true ]; then
+        create_symlink "$DOTFILES_DIR/.tmux.conf" "$HOME/.tmux.conf"
+        create_symlink "$DOTFILES_DIR/.tmux" "$HOME/.tmux"
+
+        # Install TPM (Tmux Plugin Manager) if not already installed
+        if [ ! -d "$HOME/.tmux/plugins/tpm" ]; then
+            echo ""
+            print_info "Installing Tmux Plugin Manager (TPM)..."
+            git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
+            print_success "TPM installed"
+
+            print_info "To install tmux plugins, run:"
+            echo "  1. Start tmux: tmux"
+            echo "  2. Press prefix (Ctrl+a) + I (capital i) to install plugins"
+        else
+            print_success "TPM already installed"
+        fi
+    fi
 fi
 
 # Install Neovim plugins
@@ -228,6 +341,118 @@ if [ "$install_nvim" = true ]; then
                 print_success "Prettier installed"
             fi
         fi
+
+        # Install Go language servers
+        if [ "$HAS_GO" = true ]; then
+            echo ""
+            print_info "Installing Go language servers..."
+
+            if ! command -v gopls &> /dev/null; then
+                print_warning "gopls (Go language server) not found"
+                read -p "Install gopls? (y/n) " -n 1 -r
+                echo
+                if [[ $REPLY =~ ^[Yy]$ ]]; then
+                    go install golang.org/x/tools/gopls@latest
+                    print_success "gopls installed"
+                fi
+            fi
+
+            if ! command -v golangci-lint &> /dev/null; then
+                print_warning "golangci-lint not found"
+                read -p "Install golangci-lint? (y/n) " -n 1 -r
+                echo
+                if [[ $REPLY =~ ^[Yy]$ ]]; then
+                    go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+                    print_success "golangci-lint installed"
+                fi
+            fi
+
+            if ! command -v dlv &> /dev/null; then
+                print_warning "delve (Go debugger) not found"
+                read -p "Install delve? (y/n) " -n 1 -r
+                echo
+                if [[ $REPLY =~ ^[Yy]$ ]]; then
+                    go install github.com/go-delve/delve/cmd/dlv@latest
+                    print_success "delve installed"
+                fi
+            fi
+
+            print_info "Additional Go tools (optional)..."
+            read -p "Install additional Go tools (gomodifytags, impl, gotests)? (y/n) " -n 1 -r
+            echo
+            if [[ $REPLY =~ ^[Yy]$ ]]; then
+                go install github.com/fatih/gomodifytags@latest
+                go install github.com/josharian/impl@latest
+                go install github.com/cweill/gotests/...@latest
+                print_success "Additional Go tools installed"
+            fi
+        fi
+
+        # Install Python language servers
+        if [ "$HAS_PYTHON" = true ]; then
+            echo ""
+            print_info "Installing Python language servers..."
+
+            if ! pip3 list 2>/dev/null | grep -q pyright; then
+                print_warning "pyright (Python language server) not found"
+                read -p "Install pyright? (y/n) " -n 1 -r
+                echo
+                if [[ $REPLY =~ ^[Yy]$ ]]; then
+                    pip3 install --user pyright
+                    print_success "pyright installed"
+                fi
+            fi
+
+            if ! pip3 list 2>/dev/null | grep -q black; then
+                print_warning "black (Python formatter) not found"
+                read -p "Install black? (y/n) " -n 1 -r
+                echo
+                if [[ $REPLY =~ ^[Yy]$ ]]; then
+                    pip3 install --user black
+                    print_success "black installed"
+                fi
+            fi
+
+            if ! pip3 list 2>/dev/null | grep -q isort; then
+                print_warning "isort (Python import sorter) not found"
+                read -p "Install isort? (y/n) " -n 1 -r
+                echo
+                if [[ $REPLY =~ ^[Yy]$ ]]; then
+                    pip3 install --user isort
+                    print_success "isort installed"
+                fi
+            fi
+
+            if ! pip3 list 2>/dev/null | grep -q ruff; then
+                print_warning "ruff (Python linter) not found"
+                read -p "Install ruff? (y/n) " -n 1 -r
+                echo
+                if [[ $REPLY =~ ^[Yy]$ ]]; then
+                    pip3 install --user ruff
+                    print_success "ruff installed"
+                fi
+            fi
+
+            if ! pip3 list 2>/dev/null | grep -q mypy; then
+                print_warning "mypy (Python type checker) not found"
+                read -p "Install mypy? (y/n) " -n 1 -r
+                echo
+                if [[ $REPLY =~ ^[Yy]$ ]]; then
+                    pip3 install --user mypy
+                    print_success "mypy installed"
+                fi
+            fi
+
+            if ! pip3 list 2>/dev/null | grep -q debugpy; then
+                print_warning "debugpy (Python debugger) not found"
+                read -p "Install debugpy? (y/n) " -n 1 -r
+                echo
+                if [[ $REPLY =~ ^[Yy]$ ]]; then
+                    pip3 install --user debugpy
+                    print_success "debugpy installed"
+                fi
+            fi
+        fi
     else
         print_warning "Neovim not found. Please install Neovim and run 'nvim' to install plugins"
     fi
@@ -245,19 +470,34 @@ fi
 
 echo ""
 print_info "Next steps:"
+STEP=1
 if [ "$install_nvim" = true ]; then
-    echo "  1. Run 'nvim' to finish plugin installation"
+    echo "  $STEP. Run 'nvim' to finish plugin installation"
+    STEP=$((STEP + 1))
 fi
 if [ "$install_shell" = true ]; then
     if [ -n "$ZSH_VERSION" ] || [ "$SHELL" = "/bin/zsh" ]; then
-        echo "  2. Run 'source ~/.zshrc' to reload your shell config"
+        echo "  $STEP. Run 'source ~/.zshrc' to reload your shell config"
     else
-        echo "  2. Run 'source ~/.bashrc' to reload your shell config"
+        echo "  $STEP. Run 'source ~/.bashrc' to reload your shell config"
     fi
+    STEP=$((STEP + 1))
 fi
 if [ "$install_git" = true ]; then
-    echo "  3. Set your Git user info (see warning above)"
+    echo "  $STEP. Set your Git user info (see warning above)"
+    STEP=$((STEP + 1))
 fi
+if [ "$install_tmux" = true ] && [ "$HAS_TMUX" = true ]; then
+    echo "  $STEP. Start tmux and press Ctrl+a then I to install tmux plugins"
+    echo "     Or run: tmux source ~/.tmux.conf"
+    STEP=$((STEP + 1))
+fi
+
+echo ""
+print_info "Quick start with tmux:"
+echo "  tm              # Start or attach to tmux session"
+echo "  tmuxdev myapp   # Create development layout"
+echo "  tmuxtest myapp  # Create test layout"
 
 echo ""
 print_info "For more information, see README.md"
