@@ -86,23 +86,197 @@ if [ ! -f "$DOTFILES_DIR/INSTALL.sh" ]; then
     exit 1
 fi
 
+# Function to compare version numbers
+version_ge() {
+    [ "$(printf '%s\n' "$1" "$2" | sort -V | head -n1)" = "$2" ]
+}
+
+# Function to install Neovim on Linux
+install_neovim_linux() {
+    echo ""
+    print_warning "Neovim >= 0.11.2 is required but not found or outdated"
+    print_info "LazyVim requires Neovim >= 0.11.2"
+    echo ""
+    echo "Installation options:"
+    echo "1) Bob (Neovim version manager) - Recommended"
+    echo "2) AppImage (standalone binary)"
+    echo "3) Snap package"
+    echo "4) Skip (install manually later)"
+    read -p "Choose installation method (1-4): " nvim_install_choice
+
+    case $nvim_install_choice in
+        1)
+            print_info "Installing bob (Neovim version manager)..."
+            if command -v cargo &> /dev/null; then
+                cargo install bob-nvim
+                print_success "Bob installed via cargo"
+            else
+                print_info "Installing bob without cargo..."
+                if command -v wget &> /dev/null; then
+                    wget -qO- https://raw.githubusercontent.com/MordechaiHadad/bob/master/install.sh | bash
+                elif command -v curl &> /dev/null; then
+                    curl -fsSL https://raw.githubusercontent.com/MordechaiHadad/bob/master/install.sh | bash
+                else
+                    print_error "Neither wget nor curl found. Cannot install bob."
+                    return 1
+                fi
+            fi
+
+            # Add bob to PATH for current session
+            export PATH="$HOME/.local/share/bob/nvim-bin:$PATH"
+
+            print_info "Installing Neovim stable via bob..."
+            bob install stable
+            bob use stable
+            print_success "Neovim installed via bob"
+            print_info "Bob has been added to your PATH. Restart your shell or run:"
+            echo "  export PATH=\"\$HOME/.local/share/bob/nvim-bin:\$PATH\""
+            ;;
+        2)
+            print_info "Installing Neovim AppImage..."
+            mkdir -p "$HOME/.local/bin"
+            cd "$HOME/.local/bin" || exit 1
+
+            if command -v wget &> /dev/null; then
+                wget -q --show-progress https://github.com/neovim/neovim/releases/download/stable/nvim.appimage -O nvim.appimage
+            elif command -v curl &> /dev/null; then
+                curl -LO https://github.com/neovim/neovim/releases/download/stable/nvim.appimage
+            else
+                print_error "Neither wget nor curl found. Cannot download AppImage."
+                return 1
+            fi
+
+            chmod +x nvim.appimage
+            ln -sf "$HOME/.local/bin/nvim.appimage" "$HOME/.local/bin/nvim"
+
+            # Add to PATH if not already there
+            if [[ ":$PATH:" != *":$HOME/.local/bin:"* ]]; then
+                export PATH="$HOME/.local/bin:$PATH"
+                print_info "Added ~/.local/bin to PATH for current session"
+                print_info "Add this to your shell config to make it permanent:"
+                echo "  export PATH=\"\$HOME/.local/bin:\$PATH\""
+            fi
+
+            cd "$DOTFILES_DIR" || exit 1
+            print_success "Neovim AppImage installed to ~/.local/bin/nvim"
+            ;;
+        3)
+            print_info "Installing Neovim via snap..."
+            if command -v snap &> /dev/null; then
+                sudo snap install nvim --classic
+                print_success "Neovim installed via snap"
+            else
+                print_error "Snap not found. Please install snapd first:"
+                echo "  sudo apt install snapd"
+                return 1
+            fi
+            ;;
+        4)
+            print_warning "Skipping Neovim installation"
+            print_info "You can install Neovim manually using one of these methods:"
+            echo "  1. Bob: https://github.com/MordechaiHadad/bob"
+            echo "  2. AppImage: https://github.com/neovim/neovim/releases"
+            echo "  3. Snap: sudo snap install nvim --classic"
+            echo "  4. Build from source: https://github.com/neovim/neovim"
+            return 1
+            ;;
+        *)
+            print_error "Invalid choice"
+            return 1
+            ;;
+    esac
+
+    return 0
+}
+
 # Check for required commands
 print_info "Checking for required commands..."
 MISSING_COMMANDS=()
 
-for cmd in git nvim; do
-    if ! command -v $cmd &> /dev/null; then
-        MISSING_COMMANDS+=("$cmd")
+# Check git
+if ! command -v git &> /dev/null; then
+    MISSING_COMMANDS+=("git")
+fi
+
+# Check Neovim with version requirement
+NVIM_REQUIRED="0.11.2"
+NVIM_OK=false
+
+if command -v nvim &> /dev/null; then
+    NVIM_VERSION=$(nvim --version | head -n1 | sed 's/NVIM v\([0-9.]*\).*/\1/')
+    print_info "Found Neovim version: $NVIM_VERSION"
+
+    if version_ge "$NVIM_VERSION" "$NVIM_REQUIRED"; then
+        NVIM_OK=true
+        print_success "Neovim version is compatible (>= $NVIM_REQUIRED)"
+    else
+        print_warning "Neovim version $NVIM_VERSION is too old (requires >= $NVIM_REQUIRED)"
+        if [ "$OS_TYPE" == "linux" ]; then
+            read -p "Would you like to upgrade Neovim? (y/n) " -n 1 -r
+            echo
+            if [[ $REPLY =~ ^[Yy]$ ]]; then
+                if install_neovim_linux; then
+                    NVIM_OK=true
+                fi
+            fi
+        else
+            print_info "Please upgrade Neovim manually:"
+            echo "  - macOS: brew upgrade neovim"
+            echo "  - Linux: See https://github.com/neovim/neovim/releases"
+        fi
     fi
-done
+else
+    print_warning "Neovim not found"
+    if [ "$OS_TYPE" == "linux" ]; then
+        read -p "Would you like to install Neovim? (y/n) " -n 1 -r
+        echo
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            if install_neovim_linux; then
+                NVIM_OK=true
+            fi
+        fi
+    fi
+fi
+
+if [ "$NVIM_OK" = false ]; then
+    MISSING_COMMANDS+=("nvim")
+fi
 
 if [ ${#MISSING_COMMANDS[@]} -ne 0 ]; then
-    print_warning "Missing required commands: ${MISSING_COMMANDS[*]}"
+    print_warning "Missing or incompatible commands: ${MISSING_COMMANDS[*]}"
     print_info "Please install them before continuing"
     read -p "Continue anyway? (y/n) " -n 1 -r
     echo
     if [[ ! $REPLY =~ ^[Yy]$ ]]; then
         exit 1
+    fi
+fi
+
+# Check for tree-sitter CLI (required by LazyVim)
+print_info "Checking for tree-sitter CLI..."
+if ! command -v tree-sitter &> /dev/null; then
+    print_warning "tree-sitter CLI not found (required by LazyVim)"
+    print_info "LazyVim will attempt to install it automatically"
+    print_info "If automatic installation fails, install manually:"
+    echo "  npm install -g tree-sitter-cli"
+    echo "  OR: cargo install tree-sitter-cli"
+else
+    print_success "tree-sitter CLI found"
+fi
+
+# Check for C compiler (required for tree-sitter)
+print_info "Checking for C compiler..."
+if command -v gcc &> /dev/null || command -v clang &> /dev/null; then
+    print_success "C compiler found"
+else
+    print_warning "No C compiler found (gcc or clang)"
+    print_info "Tree-sitter requires a C compiler. Install one:"
+    if [ "$OS_TYPE" == "linux" ]; then
+        echo "  Debian/Ubuntu: sudo apt install build-essential"
+        echo "  Fedora: sudo dnf install gcc gcc-c++ make"
+        echo "  Arch: sudo pacman -S base-devel"
+    elif [ "$OS_TYPE" == "macos" ]; then
+        echo "  macOS: xcode-select --install"
     fi
 fi
 
