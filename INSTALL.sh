@@ -106,6 +106,47 @@ if [ ${#MISSING_COMMANDS[@]} -ne 0 ]; then
     fi
 fi
 
+# Check Neovim version
+if command -v nvim &> /dev/null; then
+    NVIM_VERSION=$(nvim --version | head -n1 | sed 's/NVIM v\([0-9.]*\).*/\1/')
+    REQUIRED_VERSION="0.11.2"
+
+    print_info "Checking Neovim version..."
+    print_info "Found: Neovim v$NVIM_VERSION"
+    print_info "Required: Neovim >= v$REQUIRED_VERSION"
+
+    # Simple version comparison (works for most cases)
+    if [ "$(printf '%s\n' "$REQUIRED_VERSION" "$NVIM_VERSION" | sort -V | head -n1)" != "$REQUIRED_VERSION" ]; then
+        echo ""
+        print_error "Neovim version is too old!"
+        print_warning "LazyVim requires Neovim >= $REQUIRED_VERSION"
+        echo ""
+        print_info "On Debian/Ubuntu, the apt repository has outdated Neovim."
+        print_info "Please install a newer version using one of these methods:"
+        echo ""
+        echo "  Option 1 (Easiest): AppImage"
+        echo "    curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim.appimage"
+        echo "    chmod u+x nvim.appimage"
+        echo "    sudo mv nvim.appimage /usr/local/bin/nvim"
+        echo ""
+        echo "  Option 2: Build from source"
+        echo "    See README.md for detailed instructions"
+        echo ""
+        echo "  Option 3: Use bob version manager"
+        echo "    cargo install bob-nvim && bob install stable"
+        echo ""
+        read -p "Continue anyway? (NOT RECOMMENDED) (y/n) " -n 1 -r
+        echo
+        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+            echo ""
+            print_info "Installation cancelled. Please upgrade Neovim first."
+            exit 1
+        fi
+    else
+        print_success "Neovim version is compatible!"
+    fi
+fi
+
 # Check for optional language tools
 print_info "Checking for language tooling..."
 HAS_NODE=false

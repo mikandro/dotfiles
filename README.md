@@ -50,8 +50,10 @@ Modern multi-language development environment configuration with LazyVim support
 ## Prerequisites
 
 ### Required
-- **Neovim** >= 0.9.0 (for LazyVim)
+- **Neovim** >= 0.11.2 (for LazyVim) - **IMPORTANT: See installation notes below**
 - **Git** >= 2.30
+- **tree-sitter-cli** - Required by LazyVim (will auto-install, but needs gzip)
+- **A C compiler** - Required by tree-sitter (gcc/clang)
 
 ### Language-Specific (install the ones you need)
 - **Node.js** >= 18.0 + **npm** (for TypeScript/JavaScript development)
@@ -74,8 +76,8 @@ Modern multi-language development environment configuration with LazyVim support
 
 #### macOS (Homebrew)
 ```bash
-# Core tools
-brew install neovim ripgrep fd fzf git tmux
+# Core tools (Homebrew has recent Neovim)
+brew install neovim ripgrep fd fzf git tmux gcc
 
 # Language runtimes (install what you need)
 brew install node       # for TypeScript/JavaScript
@@ -87,11 +89,21 @@ brew install starship
 ```
 
 #### Ubuntu/Debian
-```bash
-sudo apt update
 
-# Core tools
-sudo apt install neovim ripgrep fd-find fzf git tmux
+**⚠️ IMPORTANT: Debian's apt repository has very old Neovim (0.7.x)**
+
+LazyVim requires Neovim >= 0.11.2. You have three options:
+
+**Option 1: AppImage (Recommended - Easiest)**
+```bash
+# Download latest Neovim AppImage
+curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim.appimage
+chmod u+x nvim.appimage
+sudo mv nvim.appimage /usr/local/bin/nvim
+
+# Install other tools
+sudo apt update
+sudo apt install ripgrep fd-find fzf git tmux build-essential gzip
 
 # Language runtimes (install what you need)
 sudo apt install nodejs npm           # for TypeScript/JavaScript
@@ -99,15 +111,77 @@ sudo apt install golang-go            # for Go
 sudo apt install python3 python3-pip  # for Python
 ```
 
+**Option 2: Unstable Repository**
+```bash
+# Add unstable repository (be careful, only for Neovim)
+echo "deb http://deb.debian.org/debian unstable main" | sudo tee /etc/apt/sources.list.d/unstable.list
+sudo apt update
+sudo apt install -t unstable neovim
+
+# Install other tools
+sudo apt install ripgrep fd-find fzf git tmux build-essential gzip
+
+# Language runtimes (install what you need)
+sudo apt install nodejs npm
+sudo apt install golang-go
+sudo apt install python3 python3-pip
+```
+
+**Option 3: Build from Source**
+```bash
+# Install dependencies
+sudo apt update
+sudo apt install ninja-build gettext cmake unzip curl build-essential
+
+# Clone and build
+git clone https://github.com/neovim/neovim
+cd neovim
+git checkout stable
+make CMAKE_BUILD_TYPE=RelWithDebInfo
+sudo make install
+
+# Install other tools
+sudo apt install ripgrep fd-find fzf git tmux gzip
+
+# Language runtimes
+sudo apt install nodejs npm golang-go python3 python3-pip
+```
+
+**Option 4: Bob Version Manager (Best for managing multiple versions)**
+```bash
+# Install Rust if not already installed
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+
+# Install bob
+cargo install bob-nvim
+
+# Install and use latest Neovim
+bob install stable
+bob use stable
+
+# Add to PATH (add to ~/.bashrc or ~/.zshrc)
+export PATH="$HOME/.local/share/bob/nvim-bin:$PATH"
+
+# Install other tools
+sudo apt install ripgrep fd-find fzf git tmux build-essential gzip
+```
+
 #### Arch Linux
 ```bash
-# Core tools
-sudo pacman -S neovim ripgrep fd fzf git tmux
+# Core tools (Arch has recent Neovim)
+sudo pacman -S neovim ripgrep fd fzf git tmux gcc gzip
 
 # Language runtimes (install what you need)
 sudo pacman -S nodejs npm      # for TypeScript/JavaScript
 sudo pacman -S go              # for Go
 sudo pacman -S python python-pip  # for Python
+```
+
+#### Verify Neovim Version
+After installation, verify you have the correct version:
+```bash
+nvim --version
+# Should show: NVIM v0.11.2 or higher
 ```
 
 ## Installation
@@ -522,6 +596,37 @@ If using these dotfiles on both macOS and Linux:
 
 ### Neovim Issues
 
+**⚠️ LazyVim requires Neovim >= 0.11.2 (MOST COMMON ISSUE)**
+
+If you get errors like "LazyVim requires Neovim >= 0.11.2" or tree-sitter errors:
+
+```bash
+# Check your version
+nvim --version
+
+# If it shows 0.7.x, 0.8.x, 0.9.x or 0.10.x, you need to upgrade
+```
+
+**Solution for Debian/Ubuntu (apt has old version):**
+
+```bash
+# Option 1: AppImage (Easiest)
+curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim.appimage
+chmod u+x nvim.appimage
+sudo mv nvim.appimage /usr/local/bin/nvim
+
+# Verify
+nvim --version  # Should show 0.11.2+
+
+# Now run the install script again
+cd ~/dotfiles
+./INSTALL.sh
+```
+
+**Other options:** See the detailed installation instructions in the Prerequisites section above.
+
+---
+
 **Plugins not loading:**
 ```bash
 nvim --headless "+Lazy! sync" +qa
@@ -536,6 +641,15 @@ nvim --headless "+Lazy! sync" +qa
 **TypeScript errors:**
 ```bash
 npm install -g typescript typescript-language-server
+```
+
+**Tree-sitter errors:**
+```bash
+# Make sure you have a C compiler
+sudo apt install build-essential  # Debian/Ubuntu
+brew install gcc                   # macOS
+
+# LazyVim will auto-install tree-sitter-cli
 ```
 
 ### Shell Issues
