@@ -118,6 +118,13 @@ if [ "$HAS_NODE" = false ] && [ "$HAS_GO" = false ] && [ "$HAS_PYTHON" = false ]
     print_info "Language servers won't be installed"
 fi
 
+# Check for tmux
+HAS_TMUX=false
+if command -v tmux &> /dev/null; then
+    HAS_TMUX=true
+    print_success "Tmux found: $(tmux -V)"
+fi
+
 # Ask user what to install
 echo ""
 print_info "What would you like to install?"
@@ -125,17 +132,20 @@ echo "1) Everything (recommended)"
 echo "2) Neovim only"
 echo "3) Shell configs only"
 echo "4) Git configs only"
-read -p "Enter your choice (1-4): " choice
+echo "5) Tmux config only"
+read -p "Enter your choice (1-5): " choice
 
 install_nvim=false
 install_shell=false
 install_git=false
+install_tmux=false
 
 case $choice in
     1)
         install_nvim=true
         install_shell=true
         install_git=true
+        install_tmux=true
         ;;
     2)
         install_nvim=true
@@ -145,6 +155,9 @@ case $choice in
         ;;
     4)
         install_git=true
+        ;;
+    5)
+        install_tmux=true
         ;;
     *)
         print_error "Invalid choice"
@@ -211,6 +224,41 @@ if [ "$install_git" = true ]; then
     print_warning "Don't forget to set your Git user info:"
     echo "  git config --global user.name \"Your Name\""
     echo "  git config --global user.email \"your.email@example.com\""
+fi
+
+# Install Tmux config
+if [ "$install_tmux" = true ]; then
+    echo ""
+    print_info "Installing Tmux configuration..."
+
+    if [ "$HAS_TMUX" = false ]; then
+        print_warning "Tmux not found. Configuration will be installed but tmux needs to be installed separately."
+        read -p "Continue? (y/n) " -n 1 -r
+        echo
+        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+            print_info "Skipping tmux configuration"
+            install_tmux=false
+        fi
+    fi
+
+    if [ "$install_tmux" = true ]; then
+        create_symlink "$DOTFILES_DIR/.tmux.conf" "$HOME/.tmux.conf"
+        create_symlink "$DOTFILES_DIR/.tmux" "$HOME/.tmux"
+
+        # Install TPM (Tmux Plugin Manager) if not already installed
+        if [ ! -d "$HOME/.tmux/plugins/tpm" ]; then
+            echo ""
+            print_info "Installing Tmux Plugin Manager (TPM)..."
+            git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
+            print_success "TPM installed"
+
+            print_info "To install tmux plugins, run:"
+            echo "  1. Start tmux: tmux"
+            echo "  2. Press prefix (Ctrl+a) + I (capital i) to install plugins"
+        else
+            print_success "TPM already installed"
+        fi
+    fi
 fi
 
 # Install Neovim plugins
@@ -383,19 +431,34 @@ fi
 
 echo ""
 print_info "Next steps:"
+STEP=1
 if [ "$install_nvim" = true ]; then
-    echo "  1. Run 'nvim' to finish plugin installation"
+    echo "  $STEP. Run 'nvim' to finish plugin installation"
+    STEP=$((STEP + 1))
 fi
 if [ "$install_shell" = true ]; then
     if [ -n "$ZSH_VERSION" ] || [ "$SHELL" = "/bin/zsh" ]; then
-        echo "  2. Run 'source ~/.zshrc' to reload your shell config"
+        echo "  $STEP. Run 'source ~/.zshrc' to reload your shell config"
     else
-        echo "  2. Run 'source ~/.bashrc' to reload your shell config"
+        echo "  $STEP. Run 'source ~/.bashrc' to reload your shell config"
     fi
+    STEP=$((STEP + 1))
 fi
 if [ "$install_git" = true ]; then
-    echo "  3. Set your Git user info (see warning above)"
+    echo "  $STEP. Set your Git user info (see warning above)"
+    STEP=$((STEP + 1))
 fi
+if [ "$install_tmux" = true ] && [ "$HAS_TMUX" = true ]; then
+    echo "  $STEP. Start tmux and press Ctrl+a then I to install tmux plugins"
+    echo "     Or run: tmux source ~/.tmux.conf"
+    STEP=$((STEP + 1))
+fi
+
+echo ""
+print_info "Quick start with tmux:"
+echo "  tm              # Start or attach to tmux session"
+echo "  tmuxdev myapp   # Create development layout"
+echo "  tmuxtest myapp  # Create test layout"
 
 echo ""
 print_info "For more information, see README.md"

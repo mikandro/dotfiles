@@ -183,6 +183,16 @@ alias djtest='python manage.py test'
 alias flaskrun='flask run'
 alias flaskshell='flask shell'
 
+# Tmux
+alias t='tmux'
+alias ta='tmux attach -t'
+alias tad='tmux attach -d -t'
+alias ts='tmux new-session -s'
+alias tl='tmux list-sessions'
+alias tksv='tmux kill-server'
+alias tkss='tmux kill-session -t'
+alias tmuxconf='nvim ~/.tmux.conf'
+
 # Development
 alias dev='npm run dev'
 alias serve='npm run serve'
@@ -336,6 +346,64 @@ vfind() {
   done
   echo "No virtual environment found"
   return 1
+}
+
+# Tmux functions
+# Create development session with specified layout
+tmuxdev() {
+  local session_name="${1:-dev}"
+  tmux new-session -d -s "$session_name"
+  tmux split-window -h -p 30 -t "$session_name"
+  tmux select-pane -t 0 -T "editor"
+  tmux select-pane -t 1 -T "terminal"
+  tmux select-pane -t 0
+  tmux attach-session -t "$session_name"
+}
+
+# Create test session with 3-pane layout
+tmuxtest() {
+  local session_name="${1:-test}"
+  tmux new-session -d -s "$session_name"
+  tmux split-window -h -p 30 -t "$session_name"
+  tmux split-window -v -t "$session_name"
+  tmux select-pane -t 0 -T "editor"
+  tmux select-pane -t 1 -T "tests"
+  tmux select-pane -t 2 -T "logs"
+  tmux select-pane -t 0
+  tmux attach-session -t "$session_name"
+}
+
+# Smart tmux attach or create
+tm() {
+  if [[ -z "$1" ]]; then
+    # No session name provided, list sessions or create default
+    if tmux list-sessions &>/dev/null; then
+      tmux attach-session
+    else
+      tmuxdev "main"
+    fi
+  else
+    # Session name provided
+    if tmux has-session -t "$1" &>/dev/null; then
+      tmux attach-session -t "$1"
+    else
+      tmuxdev "$1"
+    fi
+  fi
+}
+
+# Project-specific tmux session
+tmuxproject() {
+  local project_name="$(basename "$PWD")"
+  if tmux has-session -t "$project_name" &>/dev/null; then
+    tmux attach-session -t "$project_name"
+  else
+    tmux new-session -d -s "$project_name"
+    tmux split-window -h -p 30 -t "$project_name"
+    tmux send-keys -t "$project_name:0.1" "# Terminal ready" C-m
+    tmux select-pane -t 0
+    tmux attach-session -t "$project_name"
+  fi
 }
 
 # ---------- Prompt ----------

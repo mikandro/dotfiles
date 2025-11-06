@@ -35,6 +35,18 @@ Modern multi-language development environment configuration with LazyVim support
 - Better diff and merge tools (vimdiff/nvimdiff)
 - Useful shortcuts for daily Git operations
 
+### 🖥️ Tmux Configuration
+- `.tmux.conf` - Professional tmux setup with vi-mode bindings
+- **Seamless Neovim integration** - unified navigation between vim splits and tmux panes
+- **Smart prefix key** (Ctrl+a instead of Ctrl+b)
+- **Intuitive pane splitting** (| for vertical, - for horizontal)
+- **Mouse support** for pane resizing and selection
+- **Development layouts** - pre-configured for coding, testing, and debugging
+- **Session management** functions (tm, tmuxdev, tmuxtest, tmuxproject)
+- **Plugin support** via TPM (resurrect, continuum, yank, vim-tmux-navigator)
+- **Vi-mode copy** with system clipboard integration
+- Beautiful status bar with session info
+
 ## Prerequisites
 
 ### Required
@@ -50,7 +62,7 @@ Modern multi-language development environment configuration with LazyVim support
 - **ripgrep** - for Telescope live grep
 - **fd** - for Telescope file finding
 - **fzf** - fuzzy finder
-- **tmux** - terminal multiplexer (optional)
+- **tmux** >= 3.0 - terminal multiplexer (highly recommended for development)
 - **starship** - modern shell prompt (optional)
 
 ### Version Managers (optional)
@@ -63,7 +75,7 @@ Modern multi-language development environment configuration with LazyVim support
 #### macOS (Homebrew)
 ```bash
 # Core tools
-brew install neovim ripgrep fd fzf git
+brew install neovim ripgrep fd fzf git tmux
 
 # Language runtimes (install what you need)
 brew install node       # for TypeScript/JavaScript
@@ -71,7 +83,7 @@ brew install go         # for Go
 brew install python@3   # for Python
 
 # Optional
-brew install starship tmux
+brew install starship
 ```
 
 #### Ubuntu/Debian
@@ -79,7 +91,7 @@ brew install starship tmux
 sudo apt update
 
 # Core tools
-sudo apt install neovim ripgrep fd-find fzf git
+sudo apt install neovim ripgrep fd-find fzf git tmux
 
 # Language runtimes (install what you need)
 sudo apt install nodejs npm           # for TypeScript/JavaScript
@@ -90,7 +102,7 @@ sudo apt install python3 python3-pip  # for Python
 #### Arch Linux
 ```bash
 # Core tools
-sudo pacman -S neovim ripgrep fd fzf git
+sudo pacman -S neovim ripgrep fd fzf git tmux
 
 # Language runtimes (install what you need)
 sudo pacman -S nodejs npm      # for TypeScript/JavaScript
@@ -287,6 +299,90 @@ The script will:
 - `killport 3000` - kill process on port 3000
 - `extract file.tar.gz` - extract any archive
 
+### Tmux Workflows
+
+#### Quick Start
+- `tm` - smart tmux: attach to existing session or create new one
+- `tm myproject` - attach to "myproject" session or create it
+- `tmuxdev myapp` - create development layout (editor 70% | terminal 30%)
+- `tmuxtest myapp` - create test layout (editor 70% | tests/logs 30%)
+- `tmuxproject` - create/attach session named after current directory
+
+#### Key Bindings
+
+**Prefix Key:** `Ctrl+a` (instead of default Ctrl+b)
+
+**Session Management:**
+- `Ctrl+a c` - create new window
+- `Ctrl+a ,` - rename window
+- `Ctrl+a w` - list windows
+- `Ctrl+a &` - kill window
+
+**Pane Management:**
+- `Ctrl+a |` - split pane vertically
+- `Ctrl+a -` - split pane horizontally
+- `Ctrl+a x` - kill current pane
+- `Ctrl+a z` - zoom pane (toggle fullscreen)
+- `Ctrl+a S` - toggle synchronize-panes (send to all panes)
+
+**Navigation (works seamlessly with Neovim):**
+- `Ctrl+h/j/k/l` - navigate between panes/vim splits
+- `Ctrl+a Ctrl+h/j/k/l` - resize pane (repeatable)
+- `Alt+1..5` - switch to window 1-5
+
+**Copy Mode (Vi-style):**
+- `Ctrl+a [` - enter copy mode
+- `v` - begin selection
+- `y` - copy selection (to system clipboard)
+- `Ctrl+a p` - paste
+
+**Layouts:**
+- `Ctrl+a D` - load development layout
+- `Ctrl+a T` - load test layout
+
+**Other:**
+- `Ctrl+a r` - reload tmux config
+- `Ctrl+a I` - install tmux plugins (TPM)
+- `Ctrl+a U` - update tmux plugins
+
+#### Development Workflow Example
+
+```bash
+# Start a new project session
+cd ~/projects/myapp
+tmuxdev myapp
+
+# Inside tmux:
+# - Left pane: nvim for editing
+# - Right pane: terminal for running commands
+
+# Navigate seamlessly between nvim and terminal with Ctrl+h/l
+# Run tests in terminal while editing code
+
+# Detach from session
+Ctrl+a d
+
+# Later, reattach
+tm myapp
+```
+
+#### Tmux Aliases
+- `t` - tmux
+- `ta session` - attach to session
+- `tad session` - attach to session (detach others)
+- `ts session` - new session
+- `tl` - list sessions
+- `tkss session` - kill session
+- `tksv` - kill tmux server
+- `tmuxconf` - edit tmux config
+
+#### Plugin Features
+
+**vim-tmux-navigator:** Seamless navigation between tmux and nvim
+**tmux-resurrect:** Save/restore tmux sessions
+**tmux-continuum:** Auto-save sessions every 15 minutes
+**tmux-yank:** Better clipboard integration
+
 ## Customization
 
 ### Neovim
@@ -369,10 +465,16 @@ dotfiles/
 │               ├── telescope.lua    # Fuzzy finder with ignore patterns
 │               ├── treesitter.lua   # Syntax highlighting
 │               ├── lsp.lua          # LSP configs (TS, Go, Python)
+│               ├── tmux.lua         # Tmux integration (vim-tmux-navigator)
 │               ├── ui.lua           # UI enhancements
 │               └── coding.lua       # Coding plugins
-├── .zshrc                   # Zsh config with all aliases
-├── .bashrc                  # Bash config with all aliases
+├── .tmux/
+│   └── layouts/
+│       ├── dev.conf         # Development layout
+│       └── test.conf        # Testing layout
+├── .tmux.conf               # Tmux configuration
+├── .zshrc                   # Zsh config with all aliases & tmux functions
+├── .bashrc                  # Bash config with all aliases & tmux functions
 ├── .gitconfig               # Git configuration
 ├── .gitignore_global        # Global gitignore (Node, Go, Python)
 ├── .editorconfig            # Cross-editor consistency
