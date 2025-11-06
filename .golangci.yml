@@ -1,0 +1,177 @@
+# golangci-lint configuration file
+# Place this in your Go project root directory
+# More info: https://golangci-lint.run/usage/configuration/
+
+run:
+  # Timeout for analysis
+  timeout: 5m
+
+  # Include test files
+  tests: true
+
+  # Which dirs to skip
+  skip-dirs:
+    - vendor
+    - third_party
+    - testdata
+    - examples
+
+  # Which files to skip
+  skip-files:
+    - ".*\\.pb\\.go$"
+    - ".*\\.gen\\.go$"
+
+# Output configuration
+output:
+  # colored-line-number|line-number|json|tab|checkstyle|code-climate
+  format: colored-line-number
+
+  # Print lines of code with issue
+  print-issued-lines: true
+
+  # Print linter name in issue line
+  print-linter-name: true
+
+# Linters configuration
+linters:
+  enable:
+    # Default linters
+    - errcheck      # Check for unchecked errors
+    - gosimple      # Simplify code
+    - govet         # Reports suspicious constructs
+    - ineffassign   # Detect ineffectual assignments
+    - staticcheck   # Advanced Go linter
+    - unused        # Check for unused constants, variables, functions and types
+
+    # Additional recommended linters
+    - gofmt         # Check code formatting
+    - goimports     # Check import formatting
+    - misspell      # Find commonly misspelled words
+    - revive        # Fast, configurable, extensible, flexible linter
+    - gosec         # Security checker
+    - goconst       # Find repeated strings that could be constants
+    - gocyclo       # Check function complexity
+    - dupl          # Check for duplicate code
+    - unconvert     # Remove unnecessary type conversions
+    - prealloc      # Find slice declarations that could be preallocated
+    - exportloopref # Check for pointers to loop variables
+    - nolintlint    # Ensure nolint directives are valid
+
+  disable:
+    - typecheck  # Disabled because gopls handles this better
+
+# Linter-specific settings
+linters-settings:
+  errcheck:
+    # Report about not checking errors in type assertions
+    check-type-assertions: true
+
+    # Report about assignment of errors to blank identifier
+    check-blank: true
+
+  govet:
+    # Enable all analyzers
+    enable-all: true
+
+    # Disable shadow check (can be too strict)
+    disable:
+      - shadow
+
+  gocyclo:
+    # Minimal code complexity to report
+    min-complexity: 15
+
+  dupl:
+    # Tokens count to trigger issue
+    threshold: 100
+
+  goconst:
+    # Minimal length of string constant
+    min-len: 3
+
+    # Minimum occurrences to report
+    min-occurrences: 3
+
+  misspell:
+    locale: US
+
+  revive:
+    confidence: 0.8
+    rules:
+      - name: blank-imports
+      - name: context-as-argument
+      - name: context-keys-type
+      - name: dot-imports
+      - name: error-return
+      - name: error-strings
+      - name: error-naming
+      - name: exported
+      - name: if-return
+      - name: increment-decrement
+      - name: var-naming
+      - name: var-declaration
+      - name: package-comments
+      - name: range
+      - name: receiver-naming
+      - name: time-naming
+      - name: unexported-return
+      - name: indent-error-flow
+      - name: errorf
+      - name: empty-block
+      - name: superfluous-else
+      - name: unused-parameter
+      - name: unreachable-code
+      - name: redefines-builtin-id
+
+  gosec:
+    # To select a subset of rules to run
+    includes: []
+
+    # To specify rules to explicitly exclude
+    excludes: []
+
+    # Confidence level
+    confidence: medium
+
+  staticcheck:
+    # Select checks
+    checks: ["all"]
+
+# Issues configuration
+issues:
+  # Maximum issues count per one linter
+  max-issues-per-linter: 50
+
+  # Maximum count of issues with the same text
+  max-same-issues: 3
+
+  # Show only new issues
+  new: false
+
+  # Exclude common false positives
+  exclude-rules:
+    # Exclude some linters from running on tests files
+    - path: _test\.go
+      linters:
+        - gocyclo
+        - errcheck
+        - dupl
+        - gosec
+
+    # Exclude known issues in generated files
+    - path: ".*\\.gen\\.go"
+      linters:
+        - all
+
+    # Exclude some staticcheck messages
+    - linters:
+        - staticcheck
+      text: "SA9003:"
+
+    # Exclude lll issues for long lines with go:generate
+    - linters:
+        - lll
+      source: "^//go:generate "
+
+  # Fix found issues (if supported by the linter)
+  fix: false

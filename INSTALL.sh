@@ -76,7 +76,7 @@ fi
 print_info "Checking for required commands..."
 MISSING_COMMANDS=()
 
-for cmd in git nvim node npm; do
+for cmd in git nvim; do
     if ! command -v $cmd &> /dev/null; then
         MISSING_COMMANDS+=("$cmd")
     fi
@@ -90,6 +90,32 @@ if [ ${#MISSING_COMMANDS[@]} -ne 0 ]; then
     if [[ ! $REPLY =~ ^[Yy]$ ]]; then
         exit 1
     fi
+fi
+
+# Check for optional language tools
+print_info "Checking for language tooling..."
+HAS_NODE=false
+HAS_GO=false
+HAS_PYTHON=false
+
+if command -v node &> /dev/null && command -v npm &> /dev/null; then
+    HAS_NODE=true
+    print_success "Node.js found: $(node --version)"
+fi
+
+if command -v go &> /dev/null; then
+    HAS_GO=true
+    print_success "Go found: $(go version | awk '{print $3}')"
+fi
+
+if command -v python3 &> /dev/null && command -v pip3 &> /dev/null; then
+    HAS_PYTHON=true
+    print_success "Python found: $(python3 --version)"
+fi
+
+if [ "$HAS_NODE" = false ] && [ "$HAS_GO" = false ] && [ "$HAS_PYTHON" = false ]; then
+    print_warning "No language tooling found (Node.js, Go, or Python)"
+    print_info "Language servers won't be installed"
 fi
 
 # Ask user what to install
@@ -226,6 +252,118 @@ if [ "$install_nvim" = true ]; then
             if [[ $REPLY =~ ^[Yy]$ ]]; then
                 npm install -g prettier
                 print_success "Prettier installed"
+            fi
+        fi
+
+        # Install Go language servers
+        if [ "$HAS_GO" = true ]; then
+            echo ""
+            print_info "Installing Go language servers..."
+
+            if ! command -v gopls &> /dev/null; then
+                print_warning "gopls (Go language server) not found"
+                read -p "Install gopls? (y/n) " -n 1 -r
+                echo
+                if [[ $REPLY =~ ^[Yy]$ ]]; then
+                    go install golang.org/x/tools/gopls@latest
+                    print_success "gopls installed"
+                fi
+            fi
+
+            if ! command -v golangci-lint &> /dev/null; then
+                print_warning "golangci-lint not found"
+                read -p "Install golangci-lint? (y/n) " -n 1 -r
+                echo
+                if [[ $REPLY =~ ^[Yy]$ ]]; then
+                    go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+                    print_success "golangci-lint installed"
+                fi
+            fi
+
+            if ! command -v dlv &> /dev/null; then
+                print_warning "delve (Go debugger) not found"
+                read -p "Install delve? (y/n) " -n 1 -r
+                echo
+                if [[ $REPLY =~ ^[Yy]$ ]]; then
+                    go install github.com/go-delve/delve/cmd/dlv@latest
+                    print_success "delve installed"
+                fi
+            fi
+
+            print_info "Additional Go tools (optional)..."
+            read -p "Install additional Go tools (gomodifytags, impl, gotests)? (y/n) " -n 1 -r
+            echo
+            if [[ $REPLY =~ ^[Yy]$ ]]; then
+                go install github.com/fatih/gomodifytags@latest
+                go install github.com/josharian/impl@latest
+                go install github.com/cweill/gotests/...@latest
+                print_success "Additional Go tools installed"
+            fi
+        fi
+
+        # Install Python language servers
+        if [ "$HAS_PYTHON" = true ]; then
+            echo ""
+            print_info "Installing Python language servers..."
+
+            if ! pip3 list 2>/dev/null | grep -q pyright; then
+                print_warning "pyright (Python language server) not found"
+                read -p "Install pyright? (y/n) " -n 1 -r
+                echo
+                if [[ $REPLY =~ ^[Yy]$ ]]; then
+                    pip3 install --user pyright
+                    print_success "pyright installed"
+                fi
+            fi
+
+            if ! pip3 list 2>/dev/null | grep -q black; then
+                print_warning "black (Python formatter) not found"
+                read -p "Install black? (y/n) " -n 1 -r
+                echo
+                if [[ $REPLY =~ ^[Yy]$ ]]; then
+                    pip3 install --user black
+                    print_success "black installed"
+                fi
+            fi
+
+            if ! pip3 list 2>/dev/null | grep -q isort; then
+                print_warning "isort (Python import sorter) not found"
+                read -p "Install isort? (y/n) " -n 1 -r
+                echo
+                if [[ $REPLY =~ ^[Yy]$ ]]; then
+                    pip3 install --user isort
+                    print_success "isort installed"
+                fi
+            fi
+
+            if ! pip3 list 2>/dev/null | grep -q ruff; then
+                print_warning "ruff (Python linter) not found"
+                read -p "Install ruff? (y/n) " -n 1 -r
+                echo
+                if [[ $REPLY =~ ^[Yy]$ ]]; then
+                    pip3 install --user ruff
+                    print_success "ruff installed"
+                fi
+            fi
+
+            if ! pip3 list 2>/dev/null | grep -q mypy; then
+                print_warning "mypy (Python type checker) not found"
+                read -p "Install mypy? (y/n) " -n 1 -r
+                echo
+                if [[ $REPLY =~ ^[Yy]$ ]]; then
+                    pip3 install --user mypy
+                    print_success "mypy installed"
+                fi
+            fi
+
+            if ! pip3 list 2>/dev/null | grep -q debugpy; then
+                print_warning "debugpy (Python debugger) not found"
+                read -p "Install debugpy? (y/n) " -n 1 -r
+                echo
+                if [[ $REPLY =~ ^[Yy]$ ]]; then
+                    pip3 install --user debugpy
+                    print_success "debugpy installed"
+                fi
             fi
         fi
     else

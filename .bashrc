@@ -17,6 +17,20 @@ export PATH="$HOME/.local/bin:$HOME/bin:/usr/local/bin:$PATH"
 # fnm (Fast Node Manager) - uncomment if using fnm
 # eval "$(fnm env --use-on-cd)"
 
+# Pyenv (Python version manager) - uncomment if using pyenv
+# export PYENV_ROOT="$HOME/.pyenv"
+# export PATH="$PYENV_ROOT/bin:$PATH"
+# eval "$(pyenv init -)"
+# # Optional: pyenv-virtualenv
+# if command -v pyenv-virtualenv-init &> /dev/null; then
+#   eval "$(pyenv virtualenv-init -)"
+# fi
+
+# Go Path Configuration
+# Uncomment and adjust if Go is installed in a custom location
+# export GOPATH="$HOME/go"
+# export PATH="$PATH:$GOPATH/bin"
+
 # ---------- History Configuration ----------
 HISTCONTROL=ignoreboth:erasedups
 HISTSIZE=10000
@@ -97,6 +111,75 @@ alias pnr='pnpm run'
 alias pns='pnpm start'
 alias pnt='pnpm test'
 alias pnb='pnpm build'
+
+# Go development
+alias gob='go build'
+alias gor='go run'
+alias got='go test'
+alias gotv='go test -v'
+alias gotc='go test -cover'
+alias gom='go mod'
+alias gomi='go mod init'
+alias gomt='go mod tidy'
+alias gomv='go mod vendor'
+alias gof='go fmt ./...'
+alias goget='go get'
+alias goi='go install'
+alias goc='go clean'
+alias gov='go vet ./...'
+alias gowork='go work'
+alias golint='golangci-lint run'
+alias golintfix='golangci-lint run --fix'
+alias gocover='go test -coverprofile=coverage.out ./... && go tool cover -html=coverage.out'
+alias gobench='go test -bench=. -benchmem'
+alias gorace='go test -race ./...'
+
+# Python development
+alias py='python3'
+alias py2='python2'
+alias pip='pip3'
+alias pipi='pip3 install'
+alias pipu='pip3 install --upgrade'
+alias pipr='pip3 install -r requirements.txt'
+alias pipdev='pip3 install -r requirements-dev.txt'
+alias piplist='pip3 list'
+alias pipout='pip3 freeze > requirements.txt'
+alias pips='pip3 search'
+alias venv='python3 -m venv'
+alias vact='source venv/bin/activate'
+alias vdeact='deactivate'
+
+# Poetry (Python package manager)
+alias po='poetry'
+alias poi='poetry install'
+alias poa='poetry add'
+alias poad='poetry add --group dev'
+alias por='poetry remove'
+alias pos='poetry shell'
+alias porun='poetry run'
+alias poupd='poetry update'
+
+# Python testing & quality
+alias pytest='python3 -m pytest'
+alias pytestv='python3 -m pytest -v'
+alias pytestcov='python3 -m pytest --cov'
+alias black='python3 -m black'
+alias isort='python3 -m isort'
+alias mypy='python3 -m mypy'
+alias ruff='python3 -m ruff'
+alias rufffix='python3 -m ruff --fix'
+
+# Django shortcuts
+alias dj='python manage.py'
+alias djrun='python manage.py runserver'
+alias djmig='python manage.py migrate'
+alias djmake='python manage.py makemigrations'
+alias djshell='python manage.py shell'
+alias djtest='python manage.py test'
+
+# Flask shortcuts
+alias flaskrun='flask run'
+alias flaskshell='flask shell'
 
 # Development
 alias dev='npm run dev'
@@ -188,6 +271,69 @@ gcom() {
   local type=$1
   shift
   git commit -m "$type: $*"
+}
+
+# Go functions
+# Create new Go module
+gonew() {
+  mkdir -p "$1" && cd "$1" && go mod init "$(basename "$1")"
+}
+
+# Run Go test for specific function
+gotestfn() {
+  go test -v -run "^$1$"
+}
+
+# Hot reload with air (if installed)
+gowatch() {
+  if command -v air &> /dev/null; then
+    air
+  else
+    echo "air not installed. Install with: go install github.com/cosmtrek/air@latest"
+  fi
+}
+
+# Python functions
+# Create new virtual environment and activate
+venvnew() {
+  python3 -m venv "${1:-venv}" && source "${1:-venv}/bin/activate" && pip install --upgrade pip
+}
+
+# Create new Poetry project
+pynew() {
+  poetry new "$1" && cd "$1"
+}
+
+# Quick Python HTTP server
+pyserve() {
+  python3 -m http.server "${1:-8000}"
+}
+
+# Profile Python script
+pyprofile() {
+  python3 -m cProfile -s cumulative "$@"
+}
+
+# Python REPL with common imports
+pyrepl() {
+  python3 -i -c "import sys, os, json, re, datetime; from pathlib import Path; from pprint import pprint as pp"
+}
+
+# Find and activate virtual environment in current or parent directories
+vfind() {
+  local dir="$PWD"
+  while [[ "$dir" != "/" ]]; do
+    if [[ -d "$dir/venv" ]]; then
+      source "$dir/venv/bin/activate"
+      return 0
+    elif [[ -d "$dir/.venv" ]]; then
+      source "$dir/.venv/bin/activate"
+      return 0
+    fi
+    dir="$(dirname "$dir")"
+  done
+  echo "No virtual environment found"
+  return 1
 }
 
 # ---------- Prompt ----------

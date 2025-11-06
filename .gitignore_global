@@ -142,12 +142,65 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+MANIFEST
 
 # Virtual environments
 venv/
 env/
 ENV/
 .venv
+env.bak/
+venv.bak/
+
+# Testing and coverage
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.hypothesis/
+
+# Type checking and linting
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.ruff_cache/
+.pytype/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Poetry
+poetry.lock
+
+# Pyenv
+.python-version
+
+# ---------- Go ----------
+
+# Binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test outputs
+*.test
+*.out
+
+# Go build cache
+go.work
+go.work.sum
+
+# Dependency directories
+vendor/
+
+# Coverage
+coverage.out
+coverage.html
+
+# Air (live reload)
+tmp/
 
 # ---------- Miscellaneous ----------
 
