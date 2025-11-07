@@ -189,6 +189,74 @@ install_neovim_linux() {
     return 0
 }
 
+# Function to install Oh-My-Zsh and plugins
+install_oh_my_zsh() {
+    echo ""
+    print_info "Checking for Oh-My-Zsh..."
+
+    # Check if oh-my-zsh is already installed
+    if [ -d "$HOME/.oh-my-zsh" ]; then
+        print_success "Oh-My-Zsh already installed"
+    else
+        print_info "Installing Oh-My-Zsh..."
+
+        # Check for required tools
+        if ! command -v curl &> /dev/null && ! command -v wget &> /dev/null; then
+            print_error "Neither curl nor wget found. Cannot install Oh-My-Zsh."
+            return 1
+        fi
+
+        # Install oh-my-zsh (unattended mode)
+        export RUNZSH=no
+        export CHSH=no
+
+        if command -v curl &> /dev/null; then
+            sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+        else
+            sh -c "$(wget -O- https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+        fi
+
+        if [ $? -eq 0 ]; then
+            print_success "Oh-My-Zsh installed successfully"
+        else
+            print_error "Failed to install Oh-My-Zsh"
+            return 1
+        fi
+    fi
+
+    # Install external plugins
+    local ZSH_CUSTOM="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"
+
+    # Install zsh-autosuggestions
+    if [ ! -d "$ZSH_CUSTOM/plugins/zsh-autosuggestions" ]; then
+        print_info "Installing zsh-autosuggestions plugin..."
+        git clone https://github.com/zsh-users/zsh-autosuggestions "$ZSH_CUSTOM/plugins/zsh-autosuggestions"
+        print_success "zsh-autosuggestions installed"
+    else
+        print_success "zsh-autosuggestions already installed"
+    fi
+
+    # Install zsh-syntax-highlighting
+    if [ ! -d "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting" ]; then
+        print_info "Installing zsh-syntax-highlighting plugin..."
+        git clone https://github.com/zsh-users/zsh-syntax-highlighting.git "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting"
+        print_success "zsh-syntax-highlighting installed"
+    else
+        print_success "zsh-syntax-highlighting already installed"
+    fi
+
+    # Install zsh-completions
+    if [ ! -d "$ZSH_CUSTOM/plugins/zsh-completions" ]; then
+        print_info "Installing zsh-completions plugin..."
+        git clone https://github.com/zsh-users/zsh-completions "$ZSH_CUSTOM/plugins/zsh-completions"
+        print_success "zsh-completions installed"
+    else
+        print_success "zsh-completions already installed"
+    fi
+
+    return 0
+}
+
 # Check for required commands
 print_info "Checking for required commands..."
 MISSING_COMMANDS=()
@@ -371,6 +439,14 @@ if [ "$install_shell" = true ]; then
     # Detect shell
     if [ -n "$ZSH_VERSION" ] || [ "$SHELL" = "/bin/zsh" ] || [ "$SHELL" = "/usr/bin/zsh" ]; then
         print_info "Detected Zsh"
+
+        # Install Oh-My-Zsh first
+        if install_oh_my_zsh; then
+            print_success "Oh-My-Zsh setup complete"
+        else
+            print_warning "Oh-My-Zsh installation failed, but continuing with shell config..."
+        fi
+
         create_symlink "$DOTFILES_DIR/.zshrc" "$HOME/.zshrc"
     elif [ -n "$BASH_VERSION" ] || [ "$SHELL" = "/bin/bash" ] || [ "$SHELL" = "/usr/bin/bash" ]; then
         print_info "Detected Bash"
@@ -385,12 +461,18 @@ if [ "$install_shell" = true ]; then
 
         case $shell_choice in
             1)
+                if install_oh_my_zsh; then
+                    print_success "Oh-My-Zsh setup complete"
+                fi
                 create_symlink "$DOTFILES_DIR/.zshrc" "$HOME/.zshrc"
                 ;;
             2)
                 create_symlink "$DOTFILES_DIR/.bashrc" "$HOME/.bashrc"
                 ;;
             3)
+                if install_oh_my_zsh; then
+                    print_success "Oh-My-Zsh setup complete"
+                fi
                 create_symlink "$DOTFILES_DIR/.zshrc" "$HOME/.zshrc"
                 create_symlink "$DOTFILES_DIR/.bashrc" "$HOME/.bashrc"
                 ;;

@@ -1,6 +1,6 @@
-# ~/.zshrc - Zsh configuration
+# ~/.zshrc - Zsh configuration with Oh-My-Zsh
 
-# ---------- Path Configuration ----------
+# ---------- Path Configuration (Must come before Oh-My-Zsh) ----------
 export PATH="$HOME/.local/bin:$HOME/bin:/usr/local/bin:$PATH"
 
 # Node Version Manager (nvm) - uncomment if using nvm
@@ -25,7 +25,39 @@ export PATH="$HOME/.local/bin:$HOME/bin:/usr/local/bin:$PATH"
 # export GOPATH="$HOME/go"
 # export PATH="$PATH:$GOPATH/bin"
 
+# ---------- Oh-My-Zsh Configuration ----------
+# Path to oh-my-zsh installation
+export ZSH="$HOME/.oh-my-zsh"
+
+# Theme - using robbyrussell (default)
+ZSH_THEME="robbyrussell"
+
+# Plugins
+# Standard plugins: $ZSH/plugins/
+# Custom plugins: $ZSH_CUSTOM/plugins/
+plugins=(
+  git
+  npm
+  yarn
+  python
+  pip
+  golang
+  docker
+  docker-compose
+  tmux
+  sudo
+  history
+  common-aliases
+  zsh-autosuggestions
+  zsh-syntax-highlighting
+  zsh-completions
+)
+
+# Load Oh-My-Zsh
+source $ZSH/oh-my-zsh.sh
+
 # ---------- History Configuration ----------
+# Oh-My-Zsh sets most history options, but we can override/add more
 HISTFILE=~/.zsh_history
 HISTSIZE=10000
 SAVEHIST=10000
@@ -33,9 +65,10 @@ setopt HIST_IGNORE_ALL_DUPS
 setopt HIST_FIND_NO_DUPS
 setopt SHARE_HISTORY
 
-# ---------- Completion ----------
-autoload -Uz compinit
-compinit
+# ---------- Completion Configuration ----------
+# Oh-My-Zsh handles basic completion, add custom configuration here
+# Load zsh-completions
+fpath+=${ZSH_CUSTOM:-${ZSH:-~/.oh-my-zsh}/custom}/plugins/zsh-completions/src
 
 # Case insensitive completion
 zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}'
@@ -429,17 +462,27 @@ tmuxproject() {
 }
 
 # ---------- Prompt ----------
-# Simple two-line prompt with git branch
-autoload -Uz vcs_info
-precmd() { vcs_info }
-zstyle ':vcs_info:git:*' formats ' (%b)'
-setopt PROMPT_SUBST
-PROMPT='%F{green}%n@%m%f %F{blue}%~%f%F{yellow}${vcs_info_msg_0_}%f
-%F{cyan}❯%f '
+# Oh-My-Zsh theme handles the prompt (currently using robbyrussell)
+# To change themes, modify ZSH_THEME at the top of this file
 
-# ---------- Starship Prompt (Optional) ----------
-# Uncomment the line below if you have starship installed
+# ---------- Alternative Prompts (Optional) ----------
+# If you want to use a different prompt system, comment out the Oh-My-Zsh theme
+# and uncomment one of the following:
+
+# Starship Prompt (fast, customizable, cross-shell)
 # eval "$(starship init zsh)"
+
+# Pure Prompt (minimal, async)
+# autoload -U promptinit; promptinit
+# prompt pure
+
+# Custom simple prompt (disabled when using Oh-My-Zsh theme)
+# autoload -Uz vcs_info
+# precmd() { vcs_info }
+# zstyle ':vcs_info:git:*' formats ' (%b)'
+# setopt PROMPT_SUBST
+# PROMPT='%F{green}%n@%m%f %F{blue}%~%f%F{yellow}${vcs_info_msg_0_}%f
+# %F{cyan}❯%f '
 
 # ---------- Load local configuration ----------
 # This allows you to have machine-specific config
