@@ -138,9 +138,10 @@ install_neovim_linux() {
     cd "$HOME/.local/bin" || exit 1
 
     if command -v wget &>/dev/null; then
-      wget -q --show-progress https://github.com/neovim/neovim-releases/releases/download/v0.11.4/nvim-linux-x86_64.appimage -O nvim.appimage
+      wget -q --show-progress https://github.com/neovim/neovim/releases/download/v0.11.5/nvim-linux-x86_64.appimage -O nvim.appimage
     elif command -v curl &>/dev/null; then
-      curl -LO https://github.com/neovim/neovim/releases/download/stable/nvim.appimage
+      curl -LO https://github.com/neovim/neovim/releases/download/v0.11.5/nvim-linux-x86_64.appimage
+      mv nvim-linux-x86_64.appimage nvim.appimage
     else
       print_error "Neither wget nor curl found. Cannot download AppImage."
       return 1

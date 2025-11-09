@@ -41,10 +41,10 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/yourusername/your-project"
-Repository = "https://github.com/yourusername/your-project"
-Documentation = "https://your-project.readthedocs.io"
-"Bug Tracker" = "https://github.com/yourusername/your-project/issues"
+Homepage = "https://github.com/mikandro/dotfiles"
+Repository = "https://github.com/mikandro/dotfiles"
+Documentation = "https://github.com/mikandro/dotfiles"
+"Bug Tracker" = "https://github.com/mikandro/dotfiles/issues"
 
 # Black configuration
 [tool.black]
